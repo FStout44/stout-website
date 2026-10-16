@@ -48,12 +48,16 @@
       slides.forEach(function(el,j){el.classList.toggle('on',j===cur)});
       if(instant){track.offsetWidth;track.style.transition=''}
     }
-    // after sliding into a copy, jump back to the same photo in the middle set
-    track.addEventListener('transitionend',function(e){
-      if(e.target!==track) return;
-      if(cur<n) go(cur+n,true); else if(cur>=2*n) go(cur-n,true);
-    });
-    function step(d){go(cur+d)}
+    // after sliding into a copy, jump back to the same photo in the middle set.
+    // Done on a timer (not only transitionend) so a missed event can never let it run off the end.
+    var settle=null;
+    function recenter(){if(cur<n) go(cur+n,true); else if(cur>=2*n) go(cur-n,true)}
+    track.addEventListener('transitionend',function(e){if(e.target===track) recenter()});
+    function step(d){
+      recenter();
+      go(cur+d);
+      clearTimeout(settle); settle=setTimeout(recenter,800);
+    }
     function play(){if(!reduce){clearInterval(timer);timer=setInterval(function(){step(1)},5000)}}
     car.querySelector('.prev').addEventListener('click',function(){step(-1);play()});
     car.querySelector('.next').addEventListener('click',function(){step(1);play()});
@@ -69,6 +73,7 @@
     else imgs.forEach(function(img){if(!img.complete) ['load','error'].forEach(function(ev){img.addEventListener(ev,function(){if(--waiting===0) ready()})})});
     addEventListener('load',function(){go(cur,true)});
     addEventListener('resize',function(){go(cur,true)});
+    document.addEventListener('visibilitychange',function(){if(!document.hidden){recenter();go(cur,true)}});
   }
 
   // project galleries: show a few, expand on request, open full size in a lightbox
