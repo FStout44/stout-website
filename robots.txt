@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://buildstout.com/sitemap.xml
